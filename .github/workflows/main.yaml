@@ -7,13 +7,13 @@ on:
 jobs:
 
   runner1:
-    runs-on: runner1
+    runs-on: frontend
     steps:
       - name: Hello World
         run: echo "Hello World from runner1"
 
   runner2:
-    runs-on: runner2
+    runs-on: backends
     steps:
       - name: Hello World
         run: echo "Hello World from runner2"
