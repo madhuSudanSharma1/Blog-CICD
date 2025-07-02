@@ -1,0 +1,19 @@
+name: GitHub Actions For CI
+run-name: ${{ github.actor }} is running a GitHub Actions workflow for Self-Hosted Runners Test
+
+on: 
+  workflow_dispatch:
+  
+jobs:
+
+  runner1:
+    runs-on: runner1
+    steps:
+      - name: Hello World
+        run: echo "Hello World from runner1"
+
+  runner2:
+    runs-on: runner2
+    steps:
+      - name: Hello World
+        run: echo "Hello World from runner2"
