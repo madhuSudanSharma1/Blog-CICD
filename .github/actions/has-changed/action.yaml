@@ -1,0 +1,32 @@
+name: "Check Directory Changes"
+description: "Check if a directory has changes"
+inputs:
+  dir:
+    description: "Directory to check for changes"
+    required: true
+  base_branch:
+    description: "Which branch to check for changes"
+    required: true
+outputs:
+  changed:
+    value: ${{ steps.check.outputs.changed }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Make script executable
+      run: chmod +x .github/scripts/has_changes.sh
+      shell: bash
+
+    - name: Check for changes
+      id: check
+      run: |
+        if .github/scripts/has_changes.sh ${{ inputs.dir }} ${{ inputs.base_branch }}; then
+          echo "changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "changed=false" >> $GITHUB_OUTPUT
+        fi
+      shell: bash

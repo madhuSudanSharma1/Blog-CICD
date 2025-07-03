@@ -1,19 +1,165 @@
 name: GitHub Actions For CI
-run-name: ${{ github.actor }} is running a GitHub Actions workflow for Self-Hosted Runners Test
+run-name: ${{ github.actor }} is running a GitHub Actions workflow for CI
 
 on: 
-  workflow_dispatch:
-  
+  pull_request:
+    branches: [ "dev","main" ]
+
+  push:
+    branches: [ "dev","main" ]
+
 jobs:
-
-  runner1:
-    runs-on: frontend
+# Runs on every thing PR or push to any branch
+  commitlint:
+    if: github.event_name == 'pull_request' 
+    name: Lint Commits
+    runs-on: ubuntu-latest
     steps:
-      - name: Hello World
-        run: echo "Hello World from runner1"
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Commitlint
+        run: |
+          npm install --save-dev @commitlint/cli @commitlint/config-conventional
+      - name: Add commitlint config
+        run: |
+          echo "module.exports = {extends: ['@commitlint/config-conventional']};" > commitlint.config.js
+      - name: Run Commitlint
+        run: |
+          git log origin/${{ github.base_ref }}..HEAD --pretty=format:"%s" | npx commitlint
 
-  runner2:
-    runs-on: backends
+
+# Runs on every thing PR or push to any branch
+  lint-all-services:
+    name: Lint All Services
+    runs-on: ubuntu-latest
     steps:
-      - name: Hello World
-        run: echo "Hello World from runner2"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run frontend lint & security
+        uses: ./.github/actions/lint-and-security-checks
+        with:
+          directory: frontend
+          
+      - name: Run backend1 lint & security
+        uses: ./.github/actions/lint-and-security-checks
+        with:
+          directory: backend1
+
+      - name: Run backend2 lint & security
+        uses: ./.github/actions/lint-and-security-checks
+        with:
+          directory: backend2
+
+      - name: Final Status
+        run: echo "All services passed lint and security checks."
+
+# For All Pull Requests
+  notify-slack-pr:
+    name: Notify Slack on PR
+    if: github.event_name == 'pull_request'
+    needs: [commitlint, lint-all-services]
+    uses: ./.github/actions/slack
+    with:
+      message: |
+        payload: |
+            {
+              "text": "A new Pull Request was created by *${{ github.actor }}* targeting ${{ github.base_ref }} branch.\n<${{ github.event.pull_request.html_url }}|View PR>"
+            }
+
+# For All Pull Requests
+  notify-slack-push:
+    name: Notify Slack on Push
+    if: github.event_name == 'push'
+    needs: [commitlint, lint-all-services]
+    uses: ./.github/actions/slack
+    with:
+      message: |
+        payload: |
+            {
+              "text": "A new Push was made by *${{ github.actor }}* to ${{ github.base_ref }} branch."
+            }
+
+
+## Push to Dev OR MAIN → Docker Build & Push
+  build-and-push-frontend:
+    if: github.event_name == 'push' && github.base_ref == ('refs/heads/dev' || 'refs/heads/main')
+    runs-on: runner1
+    needs: [commitlint, lint-all-services]
+    steps:
+      - name: Check if frontend has changed
+        id: check_frontend
+        uses: ./.github/actions/has-changed
+        with:
+          dir: frontend
+          base_branch:  ${github.base_ref == 'refs/heads/main' && 'main' || 'dev'}
+
+      - name: Set Docker image tag
+        if: steps.check_frontend.outputs.changed == 'true'
+        id: set
+        run: |
+          if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "tag=${VERSION}" >> $GITHUB_OUTPUT
+          else
+            SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-6)
+            echo "tag=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Build and Push Docker Image
+        if: steps.check_frontend.outputs.changed == 'true'
+        uses: ./.github/actions/build-and-push
+        with:
+          service: frontend
+          tag: ${{ steps.set.outputs.tag }}
+      
+  build-and-push-backends:
+    if: github.event_name == 'push' && github.base_ref == ('refs/heads/dev' || 'refs/head/main')
+    runs-on: runner2
+    needs: [commitlint, lint-all-services]
+    steps:
+      - name: Check if backend1 has changed
+        id: check_backend1
+        uses: ./.github/actions/has-changed
+        with:
+          dir: backend1
+          base_branch: ${github.base_ref == 'refs/heads/main' && 'main' || 'dev'}
+      - name: Check if backend2 has changed
+        id: check_backend2
+        uses: ./.github/actions/has-changed
+        with:
+          dir: backend2
+          base_branch: ${github.base_ref == 'refs/heads/main' && 'main' || 'dev'}
+      - name: Set Docker image tag
+        if: steps.check_backend1.outputs.changed == 'true' || steps.check_backend2.outputs.changed == 'true'
+        id: set
+        run: |
+          if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "tag=${VERSION}" >> $GITHUB_OUTPUT
+          else
+            SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-6)
+            echo "tag=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Build and Push Docker Image (backend1)
+        if: steps.check_backend1.outputs.changed == 'true'
+        uses: ./.github/actions/build-and-push
+        with:
+          service: backend1
+          tag: ${{ steps.set.outputs.tag }}
+
+      - name: Build and Push Docker Image (backend2)
+        if: steps.check_backend2.outputs.changed == 'true'
+        uses: ./.github/actions/build-and-push
+        with:
+          service: backend2
+          tag: ${{ steps.set.outputs.tag }}
