@@ -77,11 +77,14 @@ jobs:
   notify-slack-push:
     name: Notify Slack on Push
     if: github.event_name == 'push'
+    runs-on: ubuntu-latest
     needs: [commitlint, lint-all-services]
-    uses: ./.github/actions/slack
-    with:
-      message: |
-        payload: |
+    steps:
+      - name: Notify Slack
+        uses: ./.github/actions/slack
+        with:
+          message: |
+          payload: |
             {
               "text": "A new Push was made by *${{ github.actor }}* to ${{ github.base_ref }} branch."
             }
