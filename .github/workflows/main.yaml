@@ -64,14 +64,17 @@ jobs:
   notify-slack-pr:
     name: Notify Slack on PR
     if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
     needs: [commitlint, lint-all-services]
-    uses: ./.github/actions/slack
-    with:
-      message: |
-        payload: |
-            {
+    steps:
+      - name: Notify Slack
+        uses: ./.github/actions/slack
+        with:
+          message: |
+            payload: |
+                {
               "text": "A new Pull Request was created by *${{ github.actor }}* targeting ${{ github.base_ref }} branch.\n<${{ github.event.pull_request.html_url }}|View PR>"
-            }
+                }
 
 # For All Pull Requests
   notify-slack-push:
