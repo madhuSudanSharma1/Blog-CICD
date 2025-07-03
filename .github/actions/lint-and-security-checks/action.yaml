@@ -15,7 +15,7 @@ runs:
         ROOT_DIR=$(git rev-parse --show-toplevel)
         echo "Running lint and security checks for ${{ inputs.directory }}..."
         cd "$ROOT_DIR/${{ inputs.directory }}"
-        yarn install --frozen-lockfile
+        yarn install
         yarn lint
         yarn tsc --noEmit
         npm-audit-resolver --production --audit || true
