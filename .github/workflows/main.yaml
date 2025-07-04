@@ -75,11 +75,7 @@ jobs:
       - name: Notify Slack
         uses: ./.github/actions/slack
         with:
-          message: |
-            payload: |
-                {
-              "text": "A new Pull Request was created by *${{ github.actor }}* targeting ${{ github.base_ref }} branch.\n<${{ github.event.pull_request.html_url }}|View PR>"
-                }
+          message: '{"text": "A new Pull Request was created by *${{ github.actor }}* targeting ${{ github.base_ref }} branch.\n<${{ github.event.pull_request.html_url }}|View PR>"}'
 
 # For All Pull Requests
   notify-slack-push:
