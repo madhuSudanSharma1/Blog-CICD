@@ -10,8 +10,7 @@ on:
 
 jobs:
 # Runs on every thing PR or push to any branch
-  commitlint:
-    if: github.event_name == 'pull_request' 
+  commitlint: 
     name: Lint Commits
     runs-on: ubuntu-latest
     steps:
