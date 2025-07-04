@@ -96,7 +96,7 @@ jobs:
 
 ## Push to Dev OR MAIN → Docker Build & Push
   build-and-push-frontend:
-    if: github.event_name == 'push' && github.base_ref == ('refs/heads/dev' || 'refs/heads/main')
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: [ lint-all-services]
     env:
@@ -131,7 +131,7 @@ jobs:
           tag: ${{ steps.set.outputs.tag }}
       
   build-and-push-backends:
-    if: github.event_name == 'push' && github.base_ref == ('refs/heads/dev' || 'refs/head/main')
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
