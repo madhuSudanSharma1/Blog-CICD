@@ -6,6 +6,6 @@ EXCLUDED_FILES=(
   ":!$DIR/README.md",
   ":!$DIR/.gitignore",
 )
-echo $DIR $BASE_BRANCH
+
 git fetch origin "$BASE_BRANCH" --depth=1 > /dev/null 2>&1
-git diff --quiet origin/"$BASE_BRANCH" -- "$DIR" "${EXCLUDED_FILES[@]}"
+git diff --name-only origin/"$BASE_BRANCH" -- "$DIR" "${EXCLUDED_FILES[@]}"
