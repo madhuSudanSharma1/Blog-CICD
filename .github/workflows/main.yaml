@@ -103,6 +103,9 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Check if frontend has changed
         id: check_frontend
         uses: ./.github/actions/has-changed
@@ -138,6 +141,9 @@ jobs:
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     needs: [ lint-all-services]
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
       - name: Check if backend1 has changed
         id: check_backend1
         uses: ./.github/actions/has-changed
