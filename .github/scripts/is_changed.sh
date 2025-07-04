@@ -12,4 +12,7 @@ for f in "${EXCLUDED_FILES[@]}"; do
   PATHSPEC+=" $f"
 done
 
+# Compare with local branch
 git diff --quiet "$BASE_BRANCH" -- $PATHSPEC
+A=$?
+echo "changed=$A"
