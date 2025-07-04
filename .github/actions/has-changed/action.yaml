@@ -24,7 +24,7 @@ runs:
     - name: Check for changes
       id: check
       run: |
-        if .github/scripts/has_changes.sh ${{ inputs.dir }} ${{ inputs.base_branch }}; then
+        if .github/scripts/is_changed.sh ${{ inputs.dir }} ${{ inputs.base_branch }}; then
           echo "changed=true" >> $GITHUB_OUTPUT
         else
           echo "changed=false" >> $GITHUB_OUTPUT
