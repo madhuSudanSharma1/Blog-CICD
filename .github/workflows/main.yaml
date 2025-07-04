@@ -149,6 +149,7 @@ jobs:
         uses: ./.github/actions/has-changed
         with:
           dir: backend1
+          base_branch: ${{ github.ref_name == 'main' && 'main' || 'dev' }}
             
       - name: Check if backend2 has changed
         id: check_backend2
