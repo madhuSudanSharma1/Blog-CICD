@@ -16,7 +16,8 @@ env:
   PAGES_TOKEN: ${{ secrets.PAGES_TOKEN }}
 jobs:
 # Runs on every thing PR or push to any branch
-  commitlint: 
+  commitlint:
+    if: github.event_name == 'pull_request' 
     name: Lint Commits
     runs-on: ubuntu-latest
     steps:
