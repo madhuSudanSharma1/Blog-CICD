@@ -7,8 +7,9 @@ EXCLUDED_FILES=(
   ":!$DIR/.gitignore"
 )
 
-git fetch origin "$BASE_BRANCH" --depth=1 > /dev/null 2>&1
+PATHSPEC="$DIR"
+for f in "${EXCLUDED_FILES[@]}"; do
+  PATHSPEC+=" $f"
+done
 
-PATHSPEC="$DIR ${EXCLUDED_FILES[@]}"
-
-git diff --quiet origin/"$BASE_BRANCH" -- $PATHSPEC
+git diff --quiet "$BASE_BRANCH" -- $PATHSPEC

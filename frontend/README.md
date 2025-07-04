@@ -54,3 +54,4 @@ export default tseslint.config({
 ```
 Hello
 hello
+Hello
