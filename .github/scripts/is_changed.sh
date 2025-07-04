@@ -15,5 +15,5 @@ done
 # Compare with local branch
 git diff --quiet "$BASE_BRANCH" -- $PATHSPEC
 A=$?
-echo $A
+echo "changed=$A"
 exit $A
