@@ -159,6 +159,7 @@ jobs:
         with:
           dir: backend2
       - name: Set Docker image tag
+        run: echo ${{steps.check_backend1.outputs.changed}}
         if: steps.check_backend1.outputs.changed == 'true' || steps.check_backend2.outputs.changed == 'true'
         id: set
         run: |
