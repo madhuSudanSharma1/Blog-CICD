@@ -21,7 +21,5 @@ runs:
       run: |
         if .github/scripts/is_changed.sh ${{ inputs.dir }}; then
           echo "changed=false" >> $GITHUB_OUTPUT
-        else
-          echo "changed=true" >> $GITHUB_OUTPUT
         fi
       shell: bash
