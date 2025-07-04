@@ -18,7 +18,7 @@ runs:
       uses: actions/checkout@v4
 
     - name: Make script executable
-      run: chmod +x .github/scripts/has_changes.sh
+      run: chmod +x .github/scripts/is_changed.sh
       shell: bash
 
     - name: Check for changes
