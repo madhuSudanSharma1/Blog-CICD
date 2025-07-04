@@ -12,3 +12,5 @@ git fetch origin "$BASE_BRANCH" --depth=1 > /dev/null 2>&1
 PATHSPEC="$DIR ${EXCLUDED_FILES[@]}"
 
 git diff --quiet origin/"$BASE_BRANCH" -- $PATHSPEC
+A=$?
+echo "Exit code: $A"
