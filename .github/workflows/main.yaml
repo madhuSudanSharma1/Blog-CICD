@@ -103,6 +103,9 @@ jobs:
     if: github.event_name == 'push' && github.base_ref == ('refs/heads/dev' || 'refs/heads/main')
     runs-on: runner1
     needs: [commitlint, lint-all-services]
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
       - name: Check if frontend has changed
         id: check_frontend
@@ -134,6 +137,9 @@ jobs:
   build-and-push-backends:
     if: github.event_name == 'push' && github.base_ref == ('refs/heads/dev' || 'refs/head/main')
     runs-on: runner2
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     needs: [commitlint, lint-all-services]
     steps:
       - name: Check if backend1 has changed
