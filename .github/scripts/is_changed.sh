@@ -16,3 +16,4 @@ done
 git diff --quiet "$BASE_BRANCH" -- $PATHSPEC
 A=$?
 echo "changed=$A"
+exit $A
