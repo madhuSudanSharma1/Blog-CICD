@@ -9,4 +9,6 @@ EXCLUDED_FILES=(
 
 git fetch origin "$BASE_BRANCH" --depth=1 > /dev/null 2>&1
 
-git diff --quiet origin/"$BASE_BRANCH" -- "$DIR" "${EXCLUDED_FILES[@]}"
+PATHSPEC="$DIR ${EXCLUDED_FILES[@]}"
+
+git diff --quiet origin/"$BASE_BRANCH" -- $PATHSPEC
