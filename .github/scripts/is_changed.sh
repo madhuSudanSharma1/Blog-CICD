@@ -20,3 +20,5 @@ exit $A
 
 
 git diff --quiet origin/"$BASE_BRANCH" -- $PATHSPEC
+A=$?
+echo "Exit code: $A"
