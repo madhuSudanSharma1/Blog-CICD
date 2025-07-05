@@ -11,8 +11,8 @@ for f in "${EXCLUDED_FILES[@]}"; do
   PATHSPEC+=" $f"
 done
 
-if git diff --quiet HEAD^ HEAD -- $PATHSPEC; then
-  echo "changed=false" >> $GITHUB_OUTPUT
-else
-  echo "changed=true" >> $GITHUB_OUTPUT
-fi
+git diff --quiet "$BASE_BRANCH"^ -- $PATHSPEC
+A=$?
+echo "changed=$A"
+exit $A
+
