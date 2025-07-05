@@ -116,6 +116,12 @@ jobs:
           change_path: frontend
           namespace: frontend
           tag_prefix: dev-
+          major_pattern: "^FEAT!:"
+          minor_pattern: "^feat:"
+          version_format: "v${major}.${minor}.${patch}"
+          bump_each_commit: true
+          bump_each_commit_patch_pattern: "^fix:"
+          search_commit_body: true
 
       - name: Version backend1
         id: b1
@@ -124,6 +130,12 @@ jobs:
           change_path: backend1
           namespace: backend1
           tag_prefix: dev-
+          major_pattern: "^FEAT!:"
+          minor_pattern: "^feat:"
+          version_format: "v${major}.${minor}.${patch}"
+          bump_each_commit: true
+          bump_each_commit_patch_pattern: "^fix:"
+          search_commit_body: true  
 
       - name: Version backend2
         id: b2
@@ -132,6 +144,12 @@ jobs:
           change_path: backend2
           namespace: backend2
           tag_prefix: dev-
+          major_pattern: "^FEAT!:"
+          minor_pattern: "^feat:"
+          version_format: "v${major}.${minor}.${patch}"
+          bump_each_commit: true
+          bump_each_commit_patch_pattern: "^fix:"
+          search_commit_body: true  
 
       - name: Check if any changed
         id: check
