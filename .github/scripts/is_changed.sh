@@ -13,7 +13,7 @@ for f in "${EXCLUDED_FILES[@]}"; do
 done
 
 
-git diff --quiet "$BASE_BRANCH"^ -- $PATHSPEC
+git diff --quiet HEAD^ -- $PATHSPEC
 A=$?
 echo $A
 exit $A
