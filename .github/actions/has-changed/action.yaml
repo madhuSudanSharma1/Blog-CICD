@@ -4,9 +4,7 @@ inputs:
   dir:
     description: "Directory to check for changes"
     required: true
-  base_branch:
-    description: "Which branch to check for changes"
-    required: true
+    
 outputs:
   changed:
     value: ${{ steps.check.outputs.changed }}
@@ -27,7 +25,7 @@ runs:
     - name: Check for changes
       id: check
       run: |
-        if .github/scripts/is_changed.sh ${{ inputs.dir }} ${{ inputs.base_branch }}; then
+        if .github/scripts/is_changed.sh ${{ inputs.dir }}; then
           echo "changed=true" >> $GITHUB_OUTPUT
         else
           echo "changed=false" >> $GITHUB_OUTPUT
