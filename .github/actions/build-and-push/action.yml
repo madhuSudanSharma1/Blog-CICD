@@ -55,7 +55,8 @@ runs:
         echo "Saving to ${inputs.service}-${inputs.tag}.tar..."
         docker save ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }} \
           > ${{ inputs.service }}-${{ inputs.tag }}.tar
-
+      shell: bash
+      
     - name: Upload image tar artifact
       if: ${{ inputs.package_artifact == 'true' }}
       uses: actions/upload-artifact@v3
