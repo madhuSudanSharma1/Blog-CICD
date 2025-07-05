@@ -22,5 +22,5 @@ exit $A
 
 git diff --quiet "$BASE_BRANCH" -- $PATHSPEC
 A=$?
-echo "changed=$A"
+echo $A
 exit $A
