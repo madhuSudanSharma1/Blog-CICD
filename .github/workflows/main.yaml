@@ -137,7 +137,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
       GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
-    needs: [lint-all-services, version-services]
+    needs: [lint-all-services]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
