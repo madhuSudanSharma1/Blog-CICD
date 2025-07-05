@@ -29,3 +29,4 @@ runs:
         # yarn tsc --noEmit
         npm-audit-resolver --production --audit || true
         cd "$ROOT_DIR"
+    
