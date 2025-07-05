@@ -1,7 +1,6 @@
 #!/bin/bash
 
 DIR=$1
-BASE_BRANCH=$2
 EXCLUDED_FILES=(
   ":!$DIR/README.md"
   ":!$DIR/.gitignore"
