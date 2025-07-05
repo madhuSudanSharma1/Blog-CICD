@@ -116,7 +116,7 @@ jobs:
         uses: ./.github/actions/has-changed
         with:
           dir: frontend
-          base_branch: ${{ github.ref_name == 'main' && 'main' || 'dev' }}
+
       - name: Set Docker image tag
         if: steps.check_frontend.outputs.changed == 'true'
         id: set
@@ -158,7 +158,6 @@ jobs:
         uses: ./.github/actions/has-changed
         with:
           dir: backend2
-          base_branch: ${{ github.ref_name == 'main' && 'main' || 'dev' }}
       - name: Set Docker image tag
         if: steps.check_backend1.outputs.changed == 'true' || steps.check_backend2.outputs.changed == 'true'
         id: set
