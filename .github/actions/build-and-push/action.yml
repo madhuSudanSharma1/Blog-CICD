@@ -27,7 +27,7 @@ runs:
       uses: actions/cache@v3
       with:
         path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ inputs.service }}-${{ inputs.tag }}-${{ hashFiles('${{ inputs.service }}/Dockerfile') }}
+        key: ${{ runner.os }}-buildx-${{ inputs.service }}-${{ inputs.tag }}-${{ hashFiles(format('{0}/Dockerfile', inputs.service)) }}
         restore-keys: |
           ${{ runner.os }}-buildx-${{ inputs.service }}-
 
