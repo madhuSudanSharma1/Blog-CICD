@@ -8,6 +8,13 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ inputs.directory }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{inputs.directory}}
 
     - name: Run lint & security checks
       shell: bash
@@ -15,7 +22,7 @@ runs:
         ROOT_DIR=$(git rev-parse --show-toplevel)
         echo "Running lint and security checks for ${{ inputs.directory }}..."
         cd "$ROOT_DIR/${{ inputs.directory }}"
-        # yarn install
+        yarn install
         # yarn lint
         # yarn tsc --noEmit
         npm-audit-resolver --production --audit || true
