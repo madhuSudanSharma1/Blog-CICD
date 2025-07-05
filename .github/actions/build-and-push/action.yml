@@ -52,7 +52,7 @@ runs:
       if: ${{ inputs.package_artifact == 'true' }}
       run: |
         docker pull ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}
-        echo "Saving to ${inputs.service}-${inputs.tag}.tar..."
+        echo "Saving to ${{inputs.service}}-${{inputs.tag}}.tar..."
         docker save ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }} \
           > ${{ inputs.service }}-${{ inputs.tag }}.tar
       shell: bash
@@ -62,4 +62,4 @@ runs:
       uses: actions/upload-artifact@v4.6.2
       with:
         name: ${{ inputs.service }}-${{ inputs.tag }}
-        path: ${{ inputs.service }}-${{ inputs.tag }}.tar
+        path: "${{ inputs.service }}-${{ inputs.tag }}.tar"
