@@ -1,6 +1,7 @@
 hello
 hello
 
+<<<<<<< HEAD
 hello
 
 hello
@@ -18,3 +19,5 @@ hahaha
 hello
 hahaha
 hahaha
+=======
+>>>>>>> 22adf0d (Feature/initialcodes (#28))
