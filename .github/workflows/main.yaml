@@ -127,6 +127,7 @@ jobs:
         with:
           service: frontend
           tag: ${{ steps.sem-rel.outputs.version }}
+
           package_artifact: true
 
   build-and-push-backends:
