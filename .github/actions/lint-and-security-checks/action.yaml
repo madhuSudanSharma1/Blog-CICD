@@ -11,8 +11,8 @@ runs:
     - name: Cache node_modules
       uses: actions/cache@v3
       with:
-        path: node_modules
-        key: ${{ runner.os }}-node-${{ inputs.directory }}-${{ hashFiles('${{ inputs.directory }}/yarn.lock') }}
+        path: ${{ inputs.directory }}/node_modules
+        key: ${{ runner.os }}-node-${{ inputs.directory }}-${{ hashFiles(format('{0}/yarn.lock', inputs.directory)) }}
         restore-keys: |
           ${{ runner.os }}-node-${{inputs.directory}}
 
