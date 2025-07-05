@@ -8,13 +8,16 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Cache node_modules
-      uses: actions/cache@v3
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
-        path: ${{ inputs.directory }}/node_modules
-        key: ${{ runner.os }}-node-${{ inputs.directory }}-${{ hashFiles(format('{0}/yarn.lock', inputs.directory)) }}
-        restore-keys: |
-          ${{ runner.os }}-node-${{inputs.directory}}
+        node-version: '18'
+        cache: 'yarn'
+        cache-dependency-path: '${{ inputs.directory }}/yarn.lock'
+
+    - name: Install Dependencies
+      run: cd ${{ inputs.directory }} && yarn install --frozen-lockfile --prefer-offline
+      shell: bash
 
     - name: Run lint & security checks
       shell: bash
@@ -22,7 +25,6 @@ runs:
         ROOT_DIR=$(git rev-parse --show-toplevel)
         echo "Running lint and security checks for ${{ inputs.directory }}..."
         cd "$ROOT_DIR/${{ inputs.directory }}"
-        yarn install
         # yarn lint
         # yarn tsc --noEmit
         npm-audit-resolver --production --audit || true
