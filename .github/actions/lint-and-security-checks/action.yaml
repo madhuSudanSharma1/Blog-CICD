@@ -12,7 +12,7 @@ runs:
       uses: actions/cache@v3
       with:
         path: node_modules
-        key: ${{ runner.os }}-node-${{ inputs.directory }}-${{ hashFiles('**/package-lock.json') }}
+        key: ${{ runner.os }}-node-${{ inputs.directory }}-${{ hashFiles('${{ inputs.directory }}/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-node-${{inputs.directory}}
 
