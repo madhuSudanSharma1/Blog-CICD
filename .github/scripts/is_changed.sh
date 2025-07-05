@@ -1,7 +1,6 @@
 #!/bin/bash
 
 DIR=$1
-BASE_BRANCH=$2
 EXCLUDED_FILES=(
   ":!$DIR/README.md"
   ":!$DIR/.gitignore"
@@ -12,8 +11,8 @@ for f in "${EXCLUDED_FILES[@]}"; do
   PATHSPEC+=" $f"
 done
 
-# Compare with local branch
-git diff --quiet "$BASE_BRANCH" -- $PATHSPEC
-A=$?
-echo "changed=$A"
-exit $A
+if git diff --quiet HEAD^ HEAD -- $PATHSPEC; then
+  echo "changed=false" >> $GITHUB_OUTPUT
+else
+  echo "changed=true" >> $GITHUB_OUTPUT
+fi
