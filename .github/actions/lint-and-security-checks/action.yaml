@@ -24,7 +24,7 @@ runs:
         cache-dependency-path: '${{ inputs.directory }}/yarn.lock'
 
     - name: Install Dependencies
-      run: cd ${{ inputs.directory }} && yarn install --frozen-lockfile
+      run: cd ${{ inputs.directory }} && yarn install
       shell: bash
 
     - name: Run lint & security checks
