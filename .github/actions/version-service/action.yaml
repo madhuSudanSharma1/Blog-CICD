@@ -40,3 +40,4 @@ runs:
       run: |
         echo "version=${{ steps.sem-rel.outputs.version }}" >> $GITHUB_OUTPUT
         echo "gitTag=${{ steps.sem-rel.outputs.gitTag }}" >> $GITHUB_OUTPUT
+      shell: bash
