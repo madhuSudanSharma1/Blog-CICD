@@ -8,14 +8,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      with:
-        path: ${{ inputs.directory }}/node_modules
-        key: ${{ runner.os }}-node-${{ inputs.directory }}-${{ hashFiles(format('{0}/yarn.lock', inputs.directory)) }}
-        restore-keys: |
-          ${{ runner.os }}-node-${{inputs.directory}}
-
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -24,7 +16,7 @@ runs:
         cache-dependency-path: '${{ inputs.directory }}/yarn.lock'
 
     - name: Install Dependencies
-      run: cd ${{ inputs.directory }} && yarn install
+      run: cd ${{ inputs.directory }} && yarn install --frozen-lockfile --prefer-offline
       shell: bash
 
     - name: Run lint & security checks
