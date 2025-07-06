@@ -4,6 +4,7 @@ DIR=$1
 EXCLUDED_FILES=(
   ":!$DIR/README.md"
   ":!$DIR/.gitignore"
+  ":!.release-it.json"
 )
 
 PATHSPEC="$DIR"

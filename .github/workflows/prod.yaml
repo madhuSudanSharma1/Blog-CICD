@@ -25,7 +25,7 @@ jobs:
           node-version: '22.0.0'
       - name: Install Commitlint
         run: |
-          npm install --save-dev @commitlint/cli @commitlint/config-conventional
+          npm install --save-dev @commitlint/cli @commitlint/config-conventional --legacy-peer-deps
       - name: Add commitlint config
         run: |
           echo "module.exports = {extends: ['@commitlint/config-conventional']};" > commitlint.config.js
