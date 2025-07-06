@@ -40,6 +40,8 @@ runs:
 
     - name: Expose version output
       run: |
-        echo "version=${{ steps.sem-rel.outputs.version }}" >> $GITHUB_OUTPUT
-        echo "gitTag=${{ steps.sem-rel.outputs.gitTag }}" >> $GITHUB_OUTPUT
+        echo "version=${{ steps.sem-rel.outputs.release-version }}" >> $GITHUB_OUTPUT
+        echo "gitTag=${{ steps.sem-rel.outputs.git-tag }}" >> $GITHUB_OUTPUT
+        echo "release-notes=${{ steps.sem-rel.outputs.release-notes }}" >> $GITHUB_OUTPUT
+
       shell: bash
