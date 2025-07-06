@@ -14,6 +14,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Download Trivy HTML template
+      run: |
+        curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+      shell: bash
+
     - name: Set up Trivy
       uses: aquasecurity/setup-trivy@v0.2.0
       with:
@@ -21,7 +26,7 @@ runs:
 
     - name: Scan TAR file with Trivy
       run: |
-        trivy image --format template --template "@/usr/share/trivy/templates/html.tpl" \
+        trivy image --format template --template @html.tpl \
         -o scan-${{ inputs.service }}.html \
         --input ${{ inputs.tar_file }}
       shell: bash
