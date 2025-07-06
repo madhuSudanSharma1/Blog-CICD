@@ -3,6 +3,17 @@ run-name: ${{ github.actor }} is deploying.
 
 on:
   workflow_dispatch:
+    inputs:
+      which-action:
+        description: 'Select the action to perform'
+        required: true
+        default: 'migrate-database'
+        type: choice
+        options:
+          - deploy-all
+          - migrate-database
+          - rollback-database
+   
 
 env:
   PAGES_REPO: madhuSudanSharma1/blog-page
@@ -31,6 +42,7 @@ env:
 
 jobs:
   deploy-frontend:
+    if: github.event.inputs.which-action == 'deploy-all' 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -84,6 +96,7 @@ jobs:
         shell: bash
 
   deploy-backends:
+    if: github.event.inputs.which-action == 'deploy-all'
     runs-on: backends
     steps:
       - name: Log in to Docker Hub
@@ -187,4 +200,25 @@ jobs:
               ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USERNAME }}/${{ env.BACKEND2_IMAGE }}:latest
           EOF
         shell: bash
-    
+  
+  migrate-database:
+    if: github.event.inputs.which-action == 'migrate-database'
+    runs-on: backends
+    needs: deploy-backends
+    steps:
+      - name: Run database migrations
+        run: |
+          docker exec -it backend1 yarn migrate
+          docker exec -it backend2 yarn migrate
+        shell: bash
+  
+  rollback-databse:
+    if: github.event.inputs.which-action == 'rollback-database'
+    runs-on: backends
+    needs: migrate-database
+    steps:
+      - name: Rollback database migrations
+        run: |
+          docker exec -it backend1 yarn rollback
+          docker exec -it backend2 yarn rollback
+        shell: bash
