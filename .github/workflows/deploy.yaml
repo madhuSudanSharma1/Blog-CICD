@@ -204,14 +204,6 @@ jobs:
     if: github.event.inputs.which-action == 'migrate-database'
     runs-on: ubuntu-latest
     steps:
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ env.TARGET_VM_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts
-        shell: bash
-
       - name: Run database migrations on VM
         run: |
           ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
@@ -219,19 +211,11 @@ jobs:
             docker exec backend2 yarn migrate || echo "backend2 migration failed"
           EOF
         shell: bash
-        
+
   rollback-databse:
     if: github.event.inputs.which-action == 'rollback-database'
     runs-on: ubuntu-latest
     steps:
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ env.TARGET_VM_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts
-        shell: bash
-
       - name: Rollback database migrations on VM
         run: |
           ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
