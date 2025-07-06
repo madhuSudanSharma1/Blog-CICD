@@ -135,7 +135,12 @@ jobs:
           git config --global user.email "077bct042.madhu@pcampus.edu.np"
       - name: Install dependencies
         if: steps.check_frontend.outputs.changed == 'true' || steps.check_backend1.outputs.changed == 'true' || steps.check_backend2.outputs.changed == 'true'
-        run: yarn install --frozen-lockfile --prefer-offline
+        run: yarn install --prefer-offline
+      - name: Configure Git user
+        run: |
+          git config --global user.name "Madhu Sharma"
+          git config --global user.email "077bct042.madhu@pcampus.edu.np"
+
       - name: Run release-it
         if: steps.check_frontend.outputs.changed == 'true' || steps.check_backend1.outputs.changed == 'true' || steps.check_backend2.outputs.changed == 'true'
         id: release
