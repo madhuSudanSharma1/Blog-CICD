@@ -3,6 +3,7 @@
   "private": true,
   "version": "4.0.2",
   "type": "module",
+  "homepage":"https://madhusudansharma1.github.io/blog-page/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
