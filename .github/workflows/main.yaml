@@ -134,8 +134,7 @@ jobs:
         uses: ./.github/actions/build-and-push
         with:
           service: frontend
-          tag: ${{ steps.sem-rel.outputs.version }}
-
+          tag: ${{ needs.version-services.outputs.frontend }}
           package_artifact: true
           dev: true
 
@@ -177,7 +176,7 @@ jobs:
         uses: ./.github/actions/build-and-push
         with:
           service: backend1
-          tag: ${{ steps.version-backend1.outputs.version }}
+          tag: ${{ needs.version-services.outputs.backend1 }}
           package_artifact: true
           dev: true
 
