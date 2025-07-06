@@ -42,7 +42,7 @@ env:
 jobs:
   deploy-frontend:
     if: github.event.inputs.which-action == 'deploy-all' 
-    runs-on: ubuntu-latest
+    runs-on: frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -201,7 +201,7 @@ jobs:
         shell: bash
   
   migrate-database:
-    if: github.event.inputs.which-action == 'migrate-database'
+    if: github.event.inputs.which-action == 'migrate-database' || github.event.inputs.which-action == 'deploy-all'
     runs-on: backends
     steps:
       - name: Set up SSH key

@@ -158,7 +158,7 @@ jobs:
 
   build-and-push-frontend:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: frontend
     needs: [lint-all-services, release]
     steps:
       - name: Checkout code
@@ -180,7 +180,7 @@ jobs:
 
   build-and-push-backends:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: backends
     needs: [lint-all-services, release]
     steps:
       - name: Checkout code
@@ -211,3 +211,19 @@ jobs:
           service: backend2
           tag: ${{ needs.release.outputs.version }}
           package_artifact: false
+  trigger-deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Trigger Deploy Workflow
+    runs-on: backends
+    needs: [build-and-push-frontend, build-and-push-backends]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Trigger deploy.yaml with input
+        uses: peter-evans/workflow-dispatch@v3
+        with:
+          workflow: deploy.yaml
+          ref: main
+          inputs: |
+            which-action: deploy-all
