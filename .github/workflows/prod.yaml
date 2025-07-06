@@ -157,7 +157,7 @@ jobs:
 
   build-and-push-frontend:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: frontend
+    runs-on: ubuntu-latest
     needs: [lint-all-services, release]
     steps:
       - name: Checkout code
@@ -179,7 +179,7 @@ jobs:
 
   build-and-push-backends:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: backends
+    runs-on: ubuntu-latest
     needs: [lint-all-services, release]
     steps:
       - name: Checkout code

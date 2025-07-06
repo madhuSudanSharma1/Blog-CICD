@@ -140,8 +140,6 @@ jobs:
   build-and-push-backends:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-
-    runs-on: backends
     needs: [lint-all-services]
     steps:
       - name: Checkout code
