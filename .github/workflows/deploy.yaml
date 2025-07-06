@@ -1,0 +1,63 @@
+name: Deploy Frontend to GitHub Pages Root
+run-name: ${{ github.actor }} is deploying frontend to GitHub Pages root
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag for the deployment (e.g., 4.0.0)'
+        required: true
+
+env:
+  PAGES_REPO: madhuSudanSharma1/blog-page
+  PAGES_TOKEN: ${{ secrets.PAGES_TOKEN }}
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.0.0'
+          cache: 'yarn'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          yarn install --prefer-offline
+        shell: bash
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          yarn build
+        shell: bash
+
+      - name: Checkout GitHub Pages repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.PAGES_REPO }}
+          token: ${{ env.PAGES_TOKEN }}
+          path: pages-repo
+          ref: main
+
+      - name: Copy dist to GitHub Pages repo root
+        run: |
+          cp -r frontend/dist/. pages-repo/
+        shell: bash
+
+      - name: Commit and push to GitHub Pages repo
+        run: |
+          cd pages-repo
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Deploy frontend build v${{ inputs.version }} to root"
+          git push origin main
+        shell: bash

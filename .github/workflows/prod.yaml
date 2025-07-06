@@ -176,7 +176,7 @@ jobs:
         with:
           service: frontend
           tag: ${{ needs.release.outputs.version }}
-          package_artifact: true
+          package_artifact: false
 
   build-and-push-backends:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -203,11 +203,11 @@ jobs:
         with:
           service: backend1
           tag: ${{ needs.release.outputs.version }}
-          package_artifact: true
+          package_artifact: false
       - name: Build and Push Docker Image (backend2)
         if: steps.check_backend2.outputs.changed == 'true'
         uses: ./.github/actions/build-and-push
         with:
           service: backend2
           tag: ${{ needs.release.outputs.version }}
-          package_artifact: true
+          package_artifact: false
