@@ -9,8 +9,8 @@
   ],
   "devDependencies": {
     "release-it": "^19.0.3",
-    "@release-it/bumper": "^6.0.2",
-    "@release-it/conventional-changelog": "^9.0.0"
+    "@release-it/bumper": "^7.0.5",
+    "@release-it/conventional-changelog": "^10.0.1"
   },
     "scripts": {
     "release": "release-it"
