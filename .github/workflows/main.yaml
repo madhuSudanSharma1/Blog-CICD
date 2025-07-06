@@ -95,13 +95,84 @@ jobs:
           message: '{"text": "A new Push was made by *${{ github.actor }}* to ${{ github.base_ref }} branch."}'
 
 ## Push to Dev OR MAIN → Docker Build & Push
+  version-services:
+    if: github.event_name == 'push' 
+    name: Compute dev‑versions
+    runs-on: ubuntu-latest
+    needs: lint-all-services
+    outputs:
+      frontend: ${{ steps.f.outputs.version }}
+      backend1:  ${{ steps.b1.outputs.version }}
+      backend2:  ${{ steps.b2.outputs.version }}
+      any-changed: ${{ steps.check.outputs.changed_any }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Version frontend
+        id: f
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          change_path: "frontend"
+          namespace: frontend
+          tag_prefix: dev-
+          major_pattern: "^FEAT!:"
+          minor_pattern: "^feat:"
+          version_format: "v${major}.${minor}.${patch}"
+          bump_each_commit: true
+          bump_each_commit_patch_pattern: "^fix:"
+          search_commit_body: true
+
+      - name: Version backend1
+        id: b1
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          change_path: backend1
+          namespace: backend1
+          tag_prefix: dev-
+          major_pattern: "^FEAT!:"
+          minor_pattern: "^feat:"
+          version_format: "v${major}.${minor}.${patch}"
+          bump_each_commit: true
+          bump_each_commit_patch_pattern: "^fix:"
+          search_commit_body: true  
+
+      - name: Version backend2
+        id: b2
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          change_path: backend2
+          namespace: backend2
+          tag_prefix: dev-
+          major_pattern: "^FEAT!:"
+          minor_pattern: "^feat:"
+          version_format: "v${major}.${minor}.${patch}"
+          bump_each_commit: true
+          bump_each_commit_patch_pattern: "^fix:"
+          search_commit_body: true  
+
+      - name: Check if any changed
+        id: check
+        run: |
+          if [[ "${{ steps.f.outputs.changed }}" == "true" ]] || \
+             [[ "${{ steps.b1.outputs.changed }}" == "true" ]] || \
+             [[ "${{ steps.b2.outputs.changed }}" == "true" ]]; then
+            echo "changed_any=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed_any=false" >> $GITHUB_OUTPUT
+          fi
+        
   build-and-push-frontend:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    needs: [lint-all-services]
+    needs: [lint-all-services,version-services]
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -114,20 +185,12 @@ jobs:
         with:
           dir: frontend
 
-      - name: Calculate version
-        id: sem-rel
-        uses: ./.github/actions/version-service
-        with:
-          directory: frontend
-          branch: dev
-
       - name: Build and Push Docker Image
         if: steps.check_frontend.outputs.changed == 'true'
         uses: ./.github/actions/build-and-push
         with:
           service: frontend
-          tag: ${{ steps.sem-rel.outputs.version }}
-
+          tag: ${{ needs.version-services.outputs.frontend }}
           package_artifact: true
 
   build-and-push-backends:
@@ -137,7 +200,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
       GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
-    needs: [lint-all-services]
+    needs: [lint-all-services,version-services]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -161,19 +224,13 @@ jobs:
         uses: ./.github/actions/has-changed
         with:
           dir: backend2
-      - name: Calculate version for backend2
-        id: version-backend2
-        uses: ./.github/actions/version-service
-        with:
-          directory: backend2
-          branch: dev
 
       - name: Build and Push Docker Image (backend1)
         if: steps.check_backend1.outputs.changed == 'true'
         uses: ./.github/actions/build-and-push
         with:
           service: backend1
-          tag: ${{ steps.version-backend1.outputs.version }}
+          tag: ${{ needs.version-services.outputs.backend1 }}
           package_artifact: true
 
       - name: Build and Push Docker Image (backend2)
@@ -181,5 +238,5 @@ jobs:
         uses: ./.github/actions/build-and-push
         with:
           service: backend2
-          tag: ${{ steps.version-backend2.outputs.version }}
+          tag: ${{ needs.version-services.outputs.backend2 }}
           package_artifact: true
