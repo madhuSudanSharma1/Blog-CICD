@@ -7,6 +7,14 @@ inputs:
   tag:
     description: "Docker image tag"
     required: true
+  package_artifact:
+    description: "Whether to package the image as a TAR file"
+    required: false
+    default: 'false'
+  release:
+    description: "Whether to package the image as a TAR file"
+    required: false
+    default: 'false'
 
 runs:
   using: "composite"
@@ -17,8 +25,20 @@ runs:
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        username: ${{ env.DOCKERHUB_USERNAME }}
+        password: ${{ env.DOCKERHUB_PASSWORD }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2        
+    
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ inputs.service }}-${{ inputs.tag }}-${{ hashFiles(format('{0}/Dockerfile', inputs.service)) }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-${{ inputs.service }}-
+
 
     - name: Build and push ${{ inputs.service }} Image
       uses: docker/build-push-action@v5
@@ -27,5 +47,23 @@ runs:
         file: ./${{ inputs.service }}/Dockerfile
         push: true
         tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}
-          ${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.service }}:latest 
+          ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}
+          ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:latest 
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+    
+    - name: Save image as TAR
+      if: ${{ inputs.package_artifact == 'true' }}
+      run: |
+        docker pull ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}
+        echo "Saving to ${{inputs.service}}-${{inputs.tag}}.tar..."
+        docker save ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }} \
+          > ${{ inputs.service }}-${{ inputs.tag }}.tar
+      shell: bash
+
+    - name: Upload image tar artifact
+      if: ${{ inputs.package_artifact == 'true' }}
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: ${{ inputs.service }}-${{ inputs.tag }}
+        path: "${{ inputs.service }}-${{ inputs.tag }}.tar"

@@ -4,9 +4,7 @@ inputs:
   dir:
     description: "Directory to check for changes"
     required: true
-  base_branch:
-    description: "Which branch to check for changes"
-    required: true
+
 outputs:
   changed:
     value: ${{ steps.check.outputs.changed }}
@@ -14,19 +12,16 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
     - name: Make script executable
-      run: chmod +x .github/scripts/has_changes.sh
+      run: chmod +x .github/scripts/is_changed.sh
       shell: bash
 
     - name: Check for changes
       id: check
       run: |
-        if .github/scripts/has_changes.sh ${{ inputs.dir }} ${{ inputs.base_branch }}; then
-          echo "changed=true" >> $GITHUB_OUTPUT
-        else
+        if .github/scripts/is_changed.sh ${{ inputs.dir }}; then
           echo "changed=false" >> $GITHUB_OUTPUT
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
         fi
       shell: bash
