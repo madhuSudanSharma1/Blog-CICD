@@ -162,6 +162,7 @@ jobs:
         if: steps.check_backend1.outputs.changed == 'true' || steps.check_backend2.outputs.changed == 'true'
         id: set
         run: |
+          echo ${{steps.check_backend1.outputs.changed}} ${{steps.check_backend2.outputs.changed}}
           if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
             echo "tag=${VERSION}" >> $GITHUB_OUTPUT

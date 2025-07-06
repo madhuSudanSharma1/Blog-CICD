@@ -18,3 +18,8 @@ A=$?
 echo $A
 exit $A
 
+
+git diff --quiet "$BASE_BRANCH" -- $PATHSPEC
+A=$?
+echo $A
+exit $A
