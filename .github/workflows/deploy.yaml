@@ -25,7 +25,7 @@ env:
   DB_CLIENT: pg
   NODE_ENV: local
   CLERK_PUBLISHABLE_KEY: pk_test_ZnJlZS1xdWFnZ2EtMjIuY2xlcmsuYWNjb3VudHMuZGV2JA
-  CLERK_SECRET_KEY: ${ secrets.CLERK_SECRET_KEY } 
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }} 
   FRONTEND_URL: https://madhusudansharma1.github.io/blog-page/
   DOCKER_NETWORK: app-network 
 
@@ -98,7 +98,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ env.TARGET_VM_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts || { echo "Failed to run ssh-keyscan for ${{ env.TARGET_VM_HOST }}"; exit 1; }
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} echo "SSH connection successful" || { echo "SSH connection failed"; exit 1; }
         shell: bash
 
       - name: Create Docker network on VM
