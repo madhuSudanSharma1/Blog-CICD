@@ -1,6 +1,6 @@
 {
   "name": "backend2",
-  "version": "1.0.9",
+  "version": "3.0.0",
   "description": "Starter template for nodejs with typescript",
   "main": "index.js",
   "scripts": {
