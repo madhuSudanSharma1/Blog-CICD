@@ -27,7 +27,7 @@ runs:
       shell: bash
       run: |
         cd ${{ inputs.directory }}
-        yarn install --frozen-lockfile
+        yarn install 
 
     - name: Run semantic-release
       id: sem-rel
