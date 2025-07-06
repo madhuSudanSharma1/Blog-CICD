@@ -204,6 +204,13 @@ jobs:
     if: github.event.inputs.which-action == 'migrate-database'
     runs-on: ubuntu-latest
     steps:
+      - name: Ensure backend containers are running
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker ps -q -f name=backend1 || (echo "backend1 not running" && exit 1)
+            docker ps -q -f name=backend2 || (echo "backend2 not running" && exit 1)
+          EOF
+        shell: bash
       - name: Run database migrations on VM
         run: |
           ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
@@ -216,6 +223,13 @@ jobs:
     if: github.event.inputs.which-action == 'rollback-database'
     runs-on: ubuntu-latest
     steps:
+      - name: Ensure backend containers are running
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker ps -q -f name=backend1 || (echo "backend1 not running" && exit 1)
+            docker ps -q -f name=backend2 || (echo "backend2 not running" && exit 1)
+          EOF
+        shell: bash
       - name: Rollback database migrations on VM
         run: |
           ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
