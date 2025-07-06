@@ -7,7 +7,12 @@ on:
 
   push:
     branches: [ "main" ]
-
+env:
+    DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+    DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+    GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
+    PAGES_REPO: madhuSudanSharma1/blog-page
+    PAGES_TOKEN: ${{ secrets.PAGES_TOKEN }}
 jobs:
 # Runs on every thing PR or push to any branch
   commitlint:
@@ -154,9 +159,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [lint-all-services, release]
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -179,9 +181,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [lint-all-services, release]
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
