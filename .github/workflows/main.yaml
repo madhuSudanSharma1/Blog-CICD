@@ -97,7 +97,7 @@ jobs:
 
   build-and-push-frontend:
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: frontend
     needs: [lint-all-services]
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -135,10 +135,11 @@ jobs:
           service: frontend
           tag: ${{ steps.set.outputs.tag }}
           package_artifact: true
+          dev: true
 
   build-and-push-backends:
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: backends
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
