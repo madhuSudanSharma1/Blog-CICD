@@ -11,6 +11,10 @@ inputs:
     description: "Whether to package the image as a TAR file"
     required: false
     default: 'false'
+  release:
+    description: "Whether to package the image as a TAR file"
+    required: false
+    default: 'false'
 
 runs:
   using: "composite"
