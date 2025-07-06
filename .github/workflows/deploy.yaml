@@ -56,8 +56,8 @@ jobs:
           yarn build
         env:
           VITE_CLERK_PUBLISHABLE_KEY: pk_test_ZnJlZS1xdWFnZ2EtMjIuY2xlcmsuYWNjb3VudHMuZGV2JA
-          VITE_BACKEND1_BASE_URL: http://localhost:3000/
-          VITE_BACKEND2_BASE_URL: http://localhost:3001/  
+          VITE_BACKEND1_BASE_URL: http://localhost:3000
+          VITE_BACKEND2_BASE_URL: http://localhost:3001  
         shell: bash
 
       - name: Checkout GitHub Pages repo
@@ -100,6 +100,18 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts || { echo "Failed to run ssh-keyscan for ${{ env.TARGET_VM_HOST }}"; exit 1; }
           ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} echo "SSH connection successful" || { echo "SSH connection failed"; exit 1; }
+        shell: bash
+      
+      - name: Clean up old containers
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker stop backend1 || true
+            docker rm backend1 || true
+            docker stop backend2 || true
+            docker rm backend2 || true
+            docker stop postgres-db || true
+            docker rm postgres-db || true
+          EOF
         shell: bash
 
       - name: Create Docker network on VM
