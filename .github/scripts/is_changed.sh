@@ -1,10 +1,10 @@
 #!/bin/bash
 
 DIR=$1
-BASE_BRANCH=$2
 EXCLUDED_FILES=(
   ":!$DIR/README.md"
   ":!$DIR/.gitignore"
+  ":!.release-it.json"
 )
 
 PATHSPEC="$DIR"
@@ -13,7 +13,7 @@ for f in "${EXCLUDED_FILES[@]}"; do
 done
 
 
-git diff --quiet "$BASE_BRANCH"^ -- $PATHSPEC
+git diff --quiet HEAD^ -- $PATHSPEC
 A=$?
 echo $A
 exit $A

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://unpkg.com/release-it@19/schema/release-it.json",
+  "plugins": {
+    "@release-it/bumper": {
+      "in": [
+        "frontend/package.json",
+        "backend1/package.json",
+        "backend2/package.json"
+      ],
+      "out": [
+        "frontend/package.json",
+        "backend1/package.json",
+        "backend2/package.json"
+      ]
+    },
+    "@release-it/conventional-changelog": {
+      "infile": "CHANGELOG.md",
+      "preset": {
+        "name": "conventionalcommits"
+      }
+    }
+  },
+  "git": {
+    "commitMessage": "chore: release v${version} [skip ci]",
+    "tagName": "v${version}",
+    "push": true,
+    "requireCleanWorkingDir": false
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Release v${version}",
+    "tokenRef": "GITHUB_TOKEN"
+  },
+  "npm": {
+    "publish": false
+  }
+}

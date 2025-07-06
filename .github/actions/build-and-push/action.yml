@@ -7,6 +7,18 @@ inputs:
   tag:
     description: "Docker image tag"
     required: true
+  package_artifact:
+    description: "Whether to package the image as a TAR file"
+    required: false
+    default: 'false'
+  release:
+    description: "Whether to package the image as a TAR file"
+    required: false
+    default: 'false'
+  dev:
+    description: "Whether it is development build"
+    required: false
+    default: 'false'
 
 runs:
   using: "composite"
@@ -31,6 +43,16 @@ runs:
         restore-keys: |
           ${{ runner.os }}-buildx-${{ inputs.service }}-
 
+    - name: Set image tags
+      id: image-tags
+      run: |
+        TAGS="${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}"
+        if [ "${{ inputs.dev }}" != "true" ]; then
+          TAGS="$TAGS,${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:latest"
+        fi
+        echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+      shell: bash
+
 
     - name: Build and push ${{ inputs.service }} Image
       uses: docker/build-push-action@v5
@@ -38,8 +60,32 @@ runs:
         context: ./${{ inputs.service }}
         file: ./${{ inputs.service }}/Dockerfile
         push: true
-        tags: |
-          ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}
-          ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:latest 
+        tags: ${{ steps.image-tags.outputs.tags }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+    
+    - name: Save image as TAR
+      if: ${{ inputs.package_artifact == 'true' }}
+      run: |
+        docker pull ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}
+        echo "Saving to ${{inputs.service}}-${{inputs.tag}}.tar..."
+        docker save ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }} \
+          > ${{ inputs.service }}-${{ inputs.tag }}.tar
+      shell: bash
+    - name: Scan TAR and publish to GitHub Pages
+      if: ${{ inputs.dev == 'false' }}
+      uses: ./.github/actions/trivy-scan-and-publish
+      with:
+        service: ${{ inputs.service }}
+        tag: ${{ inputs.tag }}
+        tar_file: ${{ inputs.service }}-${{ inputs.tag }}.tar
+      env:
+        PAGES_REPO: ${{ env.PAGES_REPO }}
+        PAGES_TOKEN: ${{ env.PAGES_TOKEN }}
+
+    - name: Upload image tar artifact
+      if: ${{ inputs.package_artifact == 'true' }}
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: ${{ inputs.service }}-${{ inputs.tag }}
+        path: "${{ inputs.service }}-${{ inputs.tag }}.tar"
