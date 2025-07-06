@@ -1,0 +1,50 @@
+name: "Trivy Scan and Publish to GitHub Pages"
+description: "Scan a Docker image TAR file with Trivy and publish HTML report to GitHub Pages"
+inputs:
+  service:
+    description: "Name of the service (e.g., frontend, backend1)"
+    required: true
+  tag:
+    description: "Docker image tag"
+    required: true
+  tar_file:
+    description: "Path to the TAR file to scan"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Trivy
+      uses: aquasecurity/setup-trivy@v0.2.0
+      with:
+        version: v0.64.1
+
+    - name: Scan TAR file with Trivy
+      run: |
+        trivy image --format template --template "@/usr/share/trivy/templates/html.tpl" \
+        -o scan-${{ inputs.service }}.html \
+        --input ${{ inputs.tar_file }}
+      shell: bash
+
+    - name: Checkout GitHub Pages repo
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ env.PAGES_REPO }}
+        token: ${{ env.PAGES_TOKEN }}
+        path: pages-repo
+
+    - name: Copy scan report to GitHub Pages repo
+      run: |
+        mkdir -p pages-repo/scan/${{ inputs.service }}
+        cp scan-${{ inputs.service }}.html pages-repo/scan/${{ inputs.service }}/index.html
+      shell: bash
+
+    - name: Commit and push to GitHub Pages repo
+      run: |
+        cd pages-repo
+        git config user.name "GitHub Actions Bot"
+        git config user.email "actions@github.com"
+        git add scan/${{ inputs.service }}/index.html
+        git commit -m "Update Trivy scan report for ${{ inputs.service }}:${{ inputs.tag }}"
+        git push origin main
+      shell: bash
