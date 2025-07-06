@@ -26,7 +26,7 @@ env:
   NODE_ENV: local
   CLERK_PUBLISHABLE_KEY: pk_test_ZnJlZS1xdWFnZ2EtMjIuY2xlcmsuYWNjb3VudHMuZGV2JA
   CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }} 
-  FRONTEND_URL: https://madhusudansharma1.github.io/blog-page/
+  FRONTEND_URL: https://madhusudansharma1.github.io
   DOCKER_NETWORK: app-network 
 
 jobs:
