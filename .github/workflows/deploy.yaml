@@ -12,8 +12,7 @@ on:
         options:
           - deploy-all
           - migrate-database
-          - rollback-database
-   
+          - rollback-database   
 
 env:
   PAGES_REPO: madhuSudanSharma1/blog-page
@@ -204,7 +203,6 @@ jobs:
   migrate-database:
     if: github.event.inputs.which-action == 'migrate-database'
     runs-on: backends
-    needs: deploy-backends
     steps:
       - name: Run database migrations
         run: |
@@ -215,7 +213,6 @@ jobs:
   rollback-databse:
     if: github.event.inputs.which-action == 'rollback-database'
     runs-on: backends
-    needs: migrate-database
     steps:
       - name: Rollback database migrations
         run: |
