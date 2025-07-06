@@ -72,6 +72,16 @@ runs:
         docker save ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }} \
           > ${{ inputs.service }}-${{ inputs.tag }}.tar
       shell: bash
+    - name: Scan TAR and publish to GitHub Pages
+      if: ${{ inputs.dev == 'false' }}
+      uses: ./.github/actions/trivy-scan-and-publish
+      with:
+        service: ${{ inputs.service }}
+        tag: ${{ inputs.tag }}
+        tar_file: ${{ inputs.service }}-${{ inputs.tag }}.tar
+      env:
+        PAGES_REPO: ${{ env.PAGES_REPO }}
+        PAGES_TOKEN: ${{ env.PAGES_TOKEN }}
 
     - name: Upload image tar artifact
       if: ${{ inputs.package_artifact == 'true' }}
