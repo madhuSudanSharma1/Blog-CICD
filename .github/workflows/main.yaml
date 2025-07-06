@@ -179,6 +179,7 @@ jobs:
           service: backend1
           tag: ${{ steps.set.outputs.tag }}
           package_artifact: true
+          dev: true
 
       - name: Build and Push Docker Image (backend2)
         if: steps.check_backend2.outputs.changed == 'true'
@@ -187,3 +188,4 @@ jobs:
           service: backend2
           tag: ${{ steps.set.outputs.tag }}
           package_artifact: true
+          dev: true

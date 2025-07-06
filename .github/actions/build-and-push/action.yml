@@ -15,6 +15,10 @@ inputs:
     description: "Whether to package the image as a TAR file"
     required: false
     default: 'false'
+  dev:
+    description: "Whether it is development build"
+    required: false
+    default: 'false'
 
 runs:
   using: "composite"
@@ -39,6 +43,16 @@ runs:
         restore-keys: |
           ${{ runner.os }}-buildx-${{ inputs.service }}-
 
+    - name: Set image tags
+      id: image-tags
+      run: |
+        TAGS="${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}"
+        if [ "${{ inputs.dev }}" != "true" ]; then
+          TAGS="$TAGS,${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:latest"
+        fi
+        echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+      shell: bash
+
 
     - name: Build and push ${{ inputs.service }} Image
       uses: docker/build-push-action@v5
@@ -46,9 +60,7 @@ runs:
         context: ./${{ inputs.service }}
         file: ./${{ inputs.service }}/Dockerfile
         push: true
-        tags: |
-          ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}
-          ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:latest 
+        tags: ${{ steps.image-tags.outputs.tags }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
     
