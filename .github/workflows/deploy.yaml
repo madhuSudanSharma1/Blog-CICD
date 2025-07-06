@@ -202,7 +202,7 @@ jobs:
   
   migrate-database:
     if: github.event.inputs.which-action == 'migrate-database'
-    runs-on: ubuntu-latest
+    runs-on: backends
     steps:
       - name: Set up SSH key
         run: |
@@ -229,7 +229,7 @@ jobs:
 
   rollback-databse:
     if: github.event.inputs.which-action == 'rollback-database'
-    runs-on: ubuntu-latest
+    runs-on: backends
     steps:
       - name: Set up SSH key
         run: |
