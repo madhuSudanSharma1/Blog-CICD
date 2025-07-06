@@ -202,20 +202,41 @@ jobs:
   
   migrate-database:
     if: github.event.inputs.which-action == 'migrate-database'
-    runs-on: backends
+    runs-on: ubuntu-latest
     steps:
-      - name: Run database migrations
+      - name: Set up SSH key
         run: |
-          docker exec -it backend1 yarn migrate
-          docker exec -it backend2 yarn migrate
+          mkdir -p ~/.ssh
+          echo "${{ env.TARGET_VM_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts
         shell: bash
-  
+
+      - name: Run database migrations on VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker exec backend1 yarn migrate || echo "backend1 migration failed"
+            docker exec backend2 yarn migrate || echo "backend2 migration failed"
+          EOF
+        shell: bash
+        
   rollback-databse:
     if: github.event.inputs.which-action == 'rollback-database'
-    runs-on: backends
+    runs-on: ubuntu-latest
     steps:
-      - name: Rollback database migrations
+      - name: Set up SSH key
         run: |
-          docker exec -it backend1 yarn rollback
-          docker exec -it backend2 yarn rollback
+          mkdir -p ~/.ssh
+          echo "${{ env.TARGET_VM_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts
         shell: bash
+
+      - name: Rollback database migrations on VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker exec backend1 yarn rollback || echo "backend1 rollback failed"
+            docker exec backend2 yarn rollback || echo "backend2 rollback failed"
+          EOF
+        shell: bash
+
