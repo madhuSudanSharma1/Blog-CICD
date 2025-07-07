@@ -1,9 +1,9 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "4.0.2",
+  "version": "5.0.0",
   "type": "module",
-  "homepage":"https://madhusudansharma1.github.io/blog-page/",
+  "homepage": "https://madhusudansharma1.github.io/blog-page/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

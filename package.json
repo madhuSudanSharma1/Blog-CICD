@@ -1,6 +1,6 @@
 {
   "name": "blog-cicd",
-  "version": "4.0.2",
+  "version": "5.0.0",
   "private": true,
   "workspaces": [
     "frontend",
@@ -15,5 +15,4 @@
   "scripts": {
     "release": "release-it"
   }
-  
 }
