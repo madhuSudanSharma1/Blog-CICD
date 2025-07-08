@@ -7,7 +7,7 @@ on:
       which-action:
         description: 'Select the action to perform'
         required: true
-        default: 'migrate-database'
+        default: 'deploy-all'
         type: choice
         options:
           - deploy-all
