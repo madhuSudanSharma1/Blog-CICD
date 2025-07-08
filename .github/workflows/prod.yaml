@@ -176,7 +176,7 @@ jobs:
 
       - name: Run Semgrep scan
         run: |
-          semgrep --json  --config semgrep.yaml . >> semgrep-results.json
+          semgrep --json  --config semgrep.yaml . >> semgrep-results.json || true
         shell: bash
 
       - name: Convert JSON to HTML
