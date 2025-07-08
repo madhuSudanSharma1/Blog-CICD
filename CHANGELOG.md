@@ -1,5 +1,7 @@
 # Changelog
 
+## [5.0.1](https://github.com/madhuSudanSharma1/Blog-CICD/compare/v5.0.0...v5.0.1) (2025-07-08)
+
 ## [5.0.0](https://github.com/madhuSudanSharma1/Blog-CICD/compare/v4.0.2...v5.0.0) (2025-07-07)
 
 ### ⚠ BREAKING CHANGES
