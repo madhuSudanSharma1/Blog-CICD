@@ -13,6 +13,8 @@ on:
           - deploy-all
           - migrate-database
           - rollback-database   
+  repository_dispatch:
+    types: [trigger-deploy]
 
 env:
   PAGES_REPO: madhuSudanSharma1/blog-page
