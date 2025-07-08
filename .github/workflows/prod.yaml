@@ -14,6 +14,26 @@ env:
   GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
   PAGES_REPO: madhuSudanSharma1/blog-page
   PAGES_TOKEN: ${{ secrets.PAGES_TOKEN }}
+  TARGET_VM_HOST: ${{ secrets.TARGET_VM_HOST }} 
+  TARGET_VM_USER: ${{ secrets.TARGET_VM_USER }} 
+  TARGET_VM_SSH_KEY: ${{ secrets.TARGET_VM_SSH_KEY }}
+  DOCKER_REGISTRY: docker.io
+  BACKEND1_IMAGE: backend1
+  BACKEND2_IMAGE: backend2
+  BACKEND1_PORT: 3000
+  BACKEND2_PORT: 3001
+  DB_PORT: ${{ secrets.DB_PORT }}
+  DB_HOST: postgres-db
+  DB_USER: madhu
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }} 
+  DB_NAME: fellowship
+  DB_CLIENT: pg
+  NODE_ENV: local
+  CLERK_PUBLISHABLE_KEY: pk_test_ZnJlZS1xdWFnZ2EtMjIuY2xlcmsuYWNjb3VudHMuZGV2JA
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }} 
+  FRONTEND_URL: https://madhusudansharma1.github.io
+  DOCKER_NETWORK: app-network 
+
 jobs:
 # Runs on every thing PR or push to any branch
   commitlint:
@@ -263,26 +283,168 @@ jobs:
         with:
           service: backend2
           tag: ${{ needs.release.outputs.version }}
-  trigger-deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    name: Trigger Deploy Workflow
-    runs-on: backends
-    needs:
-      - build-and-push-frontend
-      - build-and-push-backends
+
+  deploy-frontend:
+    runs-on: frontend
+    needs: [build-and-push-frontend, build-and-push-backends]
     steps:
-      - name: Debug Event
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.0.0'
+          cache: 'yarn'
+          
+      - name: Install Yarn
+        run: npm install -g yarn
+        shell: bash
+
+      - name: Install frontend dependencies
         run: |
-          echo "Event Name: ${{ github.event_name }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "Ref: ${{ github.ref }}"
-      - name: Send Repository Dispatch
+          cd frontend
+          yarn install --prefer-offline
+        shell: bash
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          yarn build
         env:
-          DISPATCH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_ZnJlZS1xdWFnZ2EtMjIuY2xlcmsuYWNjb3VudHMuZGV2JA
+          VITE_BACKEND1_BASE_URL: http://localhost:3000
+          VITE_BACKEND2_BASE_URL: http://localhost:3001  
+        shell: bash
+
+      - name: Checkout GitHub Pages repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.PAGES_REPO }}
+          token: ${{ env.PAGES_TOKEN }}
+          path: pages-repo
+          ref: main
+
+      - name: Copy dist to GitHub Pages repo root
         run: |
-          curl -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/madhuSudanSharma1/blog-cicd/dispatches \
-            -d '{"event_type":"trigger-deploy","client_payload":{"which-action":"deploy-all"}}'
+          cp -r frontend/dist/. pages-repo/
+        shell: bash
+
+      - name: Commit and push to GitHub Pages repo
+        run: |
+          cd pages-repo
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Deploy frontend build  to root"
+          git push origin main
+        shell: bash
+
+  deploy-backends:
+    runs-on: backends
+    needs: [build-and-push-frontend, build-and-push-backends]
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_PASSWORD }}
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ env.TARGET_VM_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts || { echo "Failed to run ssh-keyscan for ${{ env.TARGET_VM_HOST }}"; exit 1; }
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} echo "SSH connection successful" || { echo "SSH connection failed"; exit 1; }
+        shell: bash
+      
+      - name: Clean up old containers
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker stop backend1 || true
+            docker rm backend1 || true
+            docker stop backend2 || true
+            docker rm backend2 || true
+            docker stop postgres-db || true
+            docker rm postgres-db || true
+          EOF
+        shell: bash
+
+      - name: Create Docker network on VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker network create ${{ env.DOCKER_NETWORK }} || true
+          EOF
+        shell: bash
+
+      - name: Deploy PostgreSQL container
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker pull postgres:latest
+            docker stop postgres-db || true
+            docker rm postgres-db || true
+            docker run -d --name postgres-db \
+              -p ${{ env.DB_PORT }}:5432 \
+              -e POSTGRES_USER=${{ env.DB_USER }} \
+              -e POSTGRES_PASSWORD=${{ env.DB_PASSWORD }} \
+              -e POSTGRES_DB=${{ env.DB_NAME }} \
+              --network ${{ env.DOCKER_NETWORK }} \
+              postgres:latest
+            sleep 5 # Wait for PostgreSQL to start
+          EOF
+        shell: bash
+
+      - name: Deploy backend1 to VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker login -u ${{ env.DOCKERHUB_USERNAME }} -p ${{ env.DOCKERHUB_PASSWORD }} ${{ env.DOCKER_REGISTRY }}
+            docker pull ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.BACKEND1_IMAGE }}:latest
+            docker stop backend1 || true
+            docker rm backend1 || true
+            docker run -d --name backend1 \
+              -p ${{ env.BACKEND1_PORT }}:3000 \
+              -e PORT=3000 \
+              -e DB_HOST=${{ env.DB_HOST }} \
+              -e DB_PORT=${{ env.DB_PORT }} \
+              -e DB_USER=${{ env.DB_USER }} \
+              -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+              -e DB_NAME=${{ env.DB_NAME }} \
+              -e DB_CLIENT=${{ env.DB_CLIENT }} \
+              -e NODE_ENV=${{ env.NODE_ENV }} \
+              -e CLERK_PUBLISHABLE_KEY=${{ env.CLERK_PUBLISHABLE_KEY }} \
+              -e CLERK_SECRET_KEY=${{ env.CLERK_SECRET_KEY }} \
+              -e FRONTEND_URL=${{ env.FRONTEND_URL }} \
+              --network ${{ env.DOCKER_NETWORK }} \
+              ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.BACKEND1_IMAGE }}:latest
+          EOF
+        shell: bash
+
+      - name: Deploy backend2 to VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker login -u ${{ env.DOCKERHUB_USERNAME }} -p ${{ env.DOCKERHUB_PASSWORD }} ${{ env.DOCKER_REGISTRY }}
+            docker pull ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.BACKEND2_IMAGE }}:latest
+            docker stop backend2 || true
+            docker rm backend2 || true
+            docker run -d --name backend2 \
+              -p ${{ env.BACKEND2_PORT }}:3001 \
+              -e PORT=3001 \
+              -e DB_HOST=${{ env.DB_HOST }} \
+              -e DB_PORT=${{ env.DB_PORT }} \
+              -e DB_USER=${{ env.DB_USER }} \
+              -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+              -e DB_NAME=${{ env.DB_NAME }} \
+              -e DB_CLIENT=${{ env.DB_CLIENT }} \
+              -e NODE_ENV=${{ env.NODE_ENV }} \
+              -e CLERK_PUBLISHABLE_KEY=${{ env.CLERK_PUBLISHABLE_KEY }} \
+              -e CLERK_SECRET_KEY=${{ env.CLERK_SECRET_KEY }} \
+              -e FRONTEND_URL=${{ env.FRONTEND_URL }} \
+              --network ${{ env.DOCKER_NETWORK }} \
+              ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.BACKEND2_IMAGE }}:latest
+          EOF
+        shell: bash
 
