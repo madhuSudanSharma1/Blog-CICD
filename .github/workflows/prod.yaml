@@ -158,6 +158,7 @@ jobs:
   
   scan-and-publish-semgrep-report:
     name: Scan and Publish Semgrep Report
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
