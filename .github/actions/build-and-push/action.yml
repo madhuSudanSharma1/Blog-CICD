@@ -52,7 +52,11 @@ runs:
         fi
         echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
       shell: bash
-
+    
+    - name: Scan and publish semgrep reports
+      if: ${{ inputs.dev == 'false' }}
+      uses: ./.github/actions/semgrep-test-and-push
+      
 
     - name: Build and push ${{ inputs.service }} Image
       uses: docker/build-push-action@v5
@@ -72,6 +76,7 @@ runs:
         docker save ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }} \
           > ${{ inputs.service }}-${{ inputs.tag }}.tar
       shell: bash
+      
     - name: Scan TAR and publish to GitHub Pages
       if: ${{ inputs.dev == 'false' }}
       uses: ./.github/actions/trivy-scan-and-publish

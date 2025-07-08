@@ -155,6 +155,57 @@ jobs:
           echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
+  
+  scan-and-publish-semgrep-report:
+    name: Scan and Publish Semgrep Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Semgrep and json2html
+        run: |
+          pip install semgrep json2html
+        shell: bash
+
+      - name: Run Semgrep scan
+        run: |
+          semgrep --json  --config semgrep.yaml . >> semgrep-results.json
+        shell: bash
+
+      - name: Convert JSON to HTML
+        run: |
+          json2html -i semgrep-results.json -o semgrep-report.html
+        shell: bash
+
+      - name: Checkout GitHub Pages repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.PAGES_REPO }}
+          token: ${{ env.PAGES_TOKEN }}
+          path: pages-repo
+
+      - name: Copy Semgrep HTML report to GitHub Pages repo
+        run: |
+          mkdir -p pages-repo/scan/semgrep
+          cp semgrep-report.html pages-repo/scan/semgrep/index.html
+        shell: bash
+
+      - name: Commit and push to GitHub Pages
+        run: |
+          cd pages-repo
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add scan/semgrep/index.html
+          git commit -m "Update Semgrep scan report"
+          git push origin main
+        shell: bash
 
   build-and-push-frontend:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
