@@ -1,0 +1,96 @@
+name: Deploy 
+run-name: ${{ github.actor }} is deploying.
+
+on:
+  workflow_dispatch:
+    inputs:
+      which-action:
+        description: 'Select the action to perform'
+        required: true
+        default: 'migrate-database'
+        type: choice
+        options:
+          - migrate-database
+          - rollback-database   
+
+
+env:
+  PAGES_REPO: madhuSudanSharma1/blog-page
+  PAGES_TOKEN: ${{ secrets.PAGES_TOKEN }}
+  TARGET_VM_HOST: ${{ secrets.TARGET_VM_HOST }} 
+  TARGET_VM_USER: ${{ secrets.TARGET_VM_USER }} 
+  TARGET_VM_SSH_KEY: ${{ secrets.TARGET_VM_SSH_KEY }}
+  DOCKER_REGISTRY: docker.io
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+  BACKEND1_IMAGE: backend1
+  BACKEND2_IMAGE: backend2
+  BACKEND1_PORT: 3000
+  BACKEND2_PORT: 3001
+  DB_PORT: ${{ secrets.DB_PORT }}
+  DB_HOST: postgres-db
+  DB_USER: madhu
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }} 
+  DB_NAME: fellowship
+  DB_CLIENT: pg
+  NODE_ENV: local
+  CLERK_PUBLISHABLE_KEY: pk_test_ZnJlZS1xdWFnZ2EtMjIuY2xlcmsuYWNjb3VudHMuZGV2JA
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }} 
+  FRONTEND_URL: https://madhusudansharma1.github.io
+  DOCKER_NETWORK: app-network 
+
+jobs:
+  migrate-database:
+    if: github.event.inputs.which-action == 'migrate-database'
+    runs-on: backends
+    steps:
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ env.TARGET_VM_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts || { echo "Failed to run ssh-keyscan for ${{ env.TARGET_VM_HOST }}"; exit 1; }
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} echo "SSH connection successful" || { echo "SSH connection failed"; exit 1; }
+        shell: bash
+      - name: Ensure backend containers are running
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker ps -q -f name=backend1 || (echo "backend1 not running" && exit 1)
+            docker ps -q -f name=backend2 || (echo "backend2 not running" && exit 1)
+          EOF
+        shell: bash
+      - name: Run database migrations on VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker exec backend1 yarn migrate || echo "backend1 migration failed"
+            docker exec backend2 yarn migrate || echo "backend2 migration failed"
+          EOF
+        shell: bash
+
+  rollback-databse:
+    if: github.event.inputs.which-action == 'rollback-database'
+    runs-on: backends
+    steps:
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ env.TARGET_VM_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.TARGET_VM_HOST }} >> ~/.ssh/known_hosts || { echo "Failed to run ssh-keyscan for ${{ env.TARGET_VM_HOST }}"; exit 1; }
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} echo "SSH connection successful" || { echo "SSH connection failed"; exit 1; }
+        shell: bash
+      - name: Ensure backend containers are running
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker ps -q -f name=backend1 || (echo "backend1 not running" && exit 1)
+            docker ps -q -f name=backend2 || (echo "backend2 not running" && exit 1)
+          EOF
+        shell: bash
+      - name: Rollback database migrations on VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.TARGET_VM_USER }}@${{ env.TARGET_VM_HOST }} << 'EOF'
+            docker exec backend1 yarn rollback || echo "backend1 rollback failed"
+            docker exec backend2 yarn rollback || echo "backend2 rollback failed"
+          EOF
+        shell: bash
+
