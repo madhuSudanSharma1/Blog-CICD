@@ -158,6 +158,7 @@ jobs:
   
   scan-and-publish-semgrep-report:
     name: Scan and Publish Semgrep Report
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -181,8 +182,9 @@ jobs:
 
       - name: Convert JSON to HTML
         run: |
-          json2html -i semgrep-results.json -o semgrep-report.html
+          python3 -c "import json; from json2html import json2html; print(json2html.convert(json=json.load(open('semgrep-results.json'))))" > semgrep-report.html
         shell: bash
+
 
       - name: Checkout GitHub Pages repo
         uses: actions/checkout@v4
