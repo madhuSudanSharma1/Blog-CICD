@@ -274,7 +274,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Trigger deploy.yaml with input
-        uses: peter-evans/workflow-dispatch@v3
+        uses: peter-evans/repository-dispatch@v3
         with:
           event-type: workflow_dispatch
           workflow: deploy.yaml
