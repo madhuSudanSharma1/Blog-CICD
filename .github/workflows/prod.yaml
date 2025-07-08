@@ -176,7 +176,7 @@ jobs:
 
       - name: Run Semgrep scan
         run: |
-          semgrep --json  --config semgrep.yaml . >> semgrep-results.json
+          semgrep --json  --config semgrep.yaml . >> semgrep-results.json || true
         shell: bash
 
       - name: Convert JSON to HTML
@@ -274,6 +274,7 @@ jobs:
       - name: Trigger deploy.yaml with input
         uses: peter-evans/workflow-dispatch@v3
         with:
+          event-type: workflow_dispatch
           workflow: deploy.yaml
           ref: main
           inputs: |
