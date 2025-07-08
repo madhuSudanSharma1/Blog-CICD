@@ -285,7 +285,7 @@ jobs:
           tag: ${{ needs.release.outputs.version }}
 
   deploy-frontend:
-    runs-on: frontend
+    runs-on: ubuntu-latest
     needs: [build-and-push-frontend, build-and-push-backends]
     steps:
       - name: Checkout code
