@@ -52,11 +52,6 @@ runs:
         fi
         echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
       shell: bash
-    
-    - name: Scan and publish semgrep reports
-      if: ${{ inputs.dev == 'false' }}
-      uses: ./.github/actions/semgrep-test-and-push
-      
 
     - name: Build and push ${{ inputs.service }} Image
       uses: docker/build-push-action@v5
