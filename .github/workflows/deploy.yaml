@@ -13,8 +13,7 @@ on:
           - deploy-all
           - migrate-database
           - rollback-database   
-  repository_dispatch:
-    types: [trigger-deploy]
+
 
 env:
   PAGES_REPO: madhuSudanSharma1/blog-page
@@ -43,7 +42,7 @@ env:
 
 jobs:
   deploy-frontend:
-    if: github.event.inputs.which-action == 'deploy-all' 
+    if: github.event.inputs.which-action != 'rollback-database' && github.event.inputs.which-action != 'migrate-database'
     runs-on: frontend
     steps:
       - name: Checkout code
