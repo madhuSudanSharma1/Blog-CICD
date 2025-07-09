@@ -24,7 +24,6 @@ runs:
       with:
         version: v0.64.1
     - name: Save image as TAR
-      if: ${{ inputs.package_artifact == 'true' }}
       run: |
         docker pull ${{ env.DOCKERHUB_USERNAME }}/${{ inputs.service }}:${{ inputs.tag }}
         echo "Saving to ${{inputs.service}}-${{inputs.tag}}.tar..."
