@@ -59,6 +59,7 @@ const AllBlogs: React.FC = () => {
                         <Typography variant="h6">No blogs found.</Typography>
                     </Paper>
                 )}
+                <h1>Hi this is change made in final testing</h1>
                 <Stack
                     direction="row"
                     flexWrap="wrap"
